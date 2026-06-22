@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ---- WINCO LC Assignment Tool design tokens (RGB channels) ---- */
+  --canvas: 247 248 250;
+  --surface: 255 255 255;
+  --ink: 20 23 31;
+  --muted: 107 114 128;
+  --border: 229 231 235;
+
+  --accent: 47 91 255;
+  --accent-foreground: 255 255 255;
+
+  --success: 22 163 74;
+  --success-soft: 220 252 231;
+
+  --warning: 217 119 6;
+  --warning-soft: 254 243 199;
+
+  --danger: 220 38 38;
+  --danger-soft: 254 226 226;
+
+  --duplicate: 124 58 237;
+  --duplicate-soft: 237 233 254;
+}
+
+* {
+  border-color: rgb(var(--border));
+}
+
+html,
+body {
+  background-color: rgb(var(--canvas));
+  color: rgb(var(--ink));
+}
+
+body {
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+
+::selection {
+  background-color: rgb(var(--accent) / 0.18);
+}
+
+/* Slim, unobtrusive scrollbars that still look intentional */
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--border));
+  border-radius: 999px;
+  border: 2px solid rgb(var(--canvas));
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(var(--muted) / 0.6);
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--border) / 0.5) 25%,
+    rgb(var(--border) / 0.9) 37%,
+    rgb(var(--border) / 0.5) 63%
+  );
+  background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
