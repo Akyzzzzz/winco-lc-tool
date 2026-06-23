@@ -1,14 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { SheetDataResponse } from "@/types";
+import { AssignedCompany, SheetDataResponse } from "@/types";
 
 interface UseLcAssignmentDataState {
   data: SheetDataResponse | null;
   isLoading: boolean;
   isRefreshing: boolean;
   error: string | null;
+  /** Bypasses the server's in-memory cache and re-fetches both sheets — wired to the "Refresh Data" button. */
   refresh: () => Promise<void>;
+  /** Optimistically patches one company's CRM fields in local state after a successful PATCH. */
+  updateCompany: (rowNumber: number, patch: Partial<Pick<AssignedCompany, "crmStatus" | "notes" | "lastUpdated">>) => void;
 }
 
 export function useLcAssignmentData(): UseLcAssignmentDataState {
@@ -18,7 +21,7 @@ export function useLcAssignmentData(): UseLcAssignmentDataState {
   const [error, setError] = useState<string | null>(null);
   const hasLoadedOnce = useRef(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (forceRefresh: boolean) => {
     if (hasLoadedOnce.current) {
       setIsRefreshing(true);
     } else {
@@ -27,7 +30,9 @@ export function useLcAssignmentData(): UseLcAssignmentDataState {
     setError(null);
 
     try {
-      const res = await fetch("/api/sheet-data", { cache: "no-store" });
+      const res = await fetch(forceRefresh ? "/api/sheet-data?refresh=1" : "/api/sheet-data", {
+        cache: "no-store",
+      });
       const json = await res.json();
 
       if (!res.ok) {
@@ -45,8 +50,23 @@ export function useLcAssignmentData(): UseLcAssignmentDataState {
   }, []);
 
   useEffect(() => {
-    load();
+    load(false);
   }, [load]);
 
-  return { data, isLoading, isRefreshing, error, refresh: load };
+  const refresh = useCallback(() => load(true), [load]);
+
+  const updateCompany = useCallback(
+    (rowNumber: number, patch: Partial<Pick<AssignedCompany, "crmStatus" | "notes" | "lastUpdated">>) => {
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          companies: prev.companies.map((c) => (c.rowNumber === rowNumber ? { ...c, ...patch } : c)),
+        };
+      });
+    },
+    []
+  );
+
+  return { data, isLoading, isRefreshing, error, refresh, updateCompany };
 }

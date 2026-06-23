@@ -1,5 +1,11 @@
 import Papa from "papaparse";
 
+/** Extracts the bare spreadsheet ID from any Google Sheets URL shape. */
+export function extractSpreadsheetId(rawUrl: string): string | null {
+  const match = rawUrl.trim().match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  return match ? match[1] : null;
+}
+
 /**
  * Accepts a Google Sheets URL in *any* common shape and returns a direct
  * CSV export URL. Handles:
@@ -20,29 +26,38 @@ export function toCsvExportUrl(rawUrl: string): string {
     return url;
   }
 
-  const idMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  if (!idMatch) {
+  const sheetId = extractSpreadsheetId(url);
+  if (!sheetId) {
     // Not a recognizable Google Sheets URL — let it fail naturally on fetch
     // rather than guessing, per the "never guess" rule.
     return url;
   }
 
-  const sheetId = idMatch[1];
   const gidMatch = url.match(/[?#&]gid=([0-9]+)/);
   const gid = gidMatch ? gidMatch[1] : "0";
 
   return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
 }
 
+/** One parsed data row, paired with its 1-based row number in the real sheet (header = row 1). */
+export interface SheetRow {
+  data: Record<string, string>;
+  /** 1-based row number in the actual Google Sheet — header is row 1, so data starts at row 2. */
+  sheetRow: number;
+}
+
 export interface CsvFetchResult {
-  rows: Record<string, string>[];
+  rows: SheetRow[];
   rawHeaders: string[];
 }
 
 /**
- * Fetches a Google Sheet as CSV and parses it into an array of objects keyed
- * by (trimmed, lower-cased) header name. Throws a descriptive error if the
- * sheet is unreachable or not public.
+ * Fetches a Google Sheet as CSV and parses it into row objects keyed by
+ * (trimmed) header name, each paired with its real 1-based sheet row number
+ * so that later write-back calls (e.g. updating a Status cell) target the
+ * correct row even if some rows were filtered out downstream.
+ *
+ * Throws a descriptive error if the sheet is unreachable or not public.
  */
 export async function fetchSheetAsObjects(rawUrl: string, label: string): Promise<CsvFetchResult> {
   const csvUrl = toCsvExportUrl(rawUrl);
@@ -75,14 +90,16 @@ export async function fetchSheetAsObjects(rawUrl: string, label: string): Promis
     );
   }
 
+  // skipEmptyLines is intentionally OFF here so the parsed array's index
+  // stays perfectly aligned with real sheet row numbers — we filter out
+  // blank rows ourselves below, after computing each row's true sheetRow.
   const parsed = Papa.parse<Record<string, string>>(csvText, {
     header: true,
-    skipEmptyLines: true,
+    skipEmptyLines: false,
     transformHeader: (h) => h.trim(),
   });
 
   if (parsed.errors.length > 0) {
-    // PapaParse reports row-level issues; surface only if rows are unusable.
     const fatal = parsed.errors.filter((e) => e.type !== "FieldMismatch");
     if (fatal.length > 0 && parsed.data.length === 0) {
       throw new Error(`The ${label} sheet could not be parsed as CSV.`);
@@ -91,7 +108,11 @@ export async function fetchSheetAsObjects(rawUrl: string, label: string): Promis
 
   const rawHeaders = parsed.meta.fields ?? [];
 
-  return { rows: parsed.data, rawHeaders };
+  const rows: SheetRow[] = parsed.data
+    .map((data, idx) => ({ data, sheetRow: idx + 2 })) // header is row 1
+    .filter(({ data }) => Object.values(data).some((v) => (v ?? "").trim() !== ""));
+
+  return { rows, rawHeaders };
 }
 
 /**

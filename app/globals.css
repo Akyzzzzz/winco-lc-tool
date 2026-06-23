@@ -24,6 +24,31 @@
 
   --duplicate: 124 58 237;
   --duplicate-soft: 237 233 254;
+
+  /* ---- CRM pipeline status colors (lib/status.ts) ---- */
+  --pipeline-gray: 107 114 128;
+  --pipeline-gray-soft: 243 244 246;
+
+  --pipeline-yellow: 161 98 7;
+  --pipeline-yellow-soft: 254 249 195;
+
+  --pipeline-blue: 29 78 216;
+  --pipeline-blue-soft: 219 234 254;
+
+  --pipeline-orange: 194 65 12;
+  --pipeline-orange-soft: 255 237 213;
+
+  --pipeline-teal: 15 118 110;
+  --pipeline-teal-soft: 204 251 241;
+
+  --pipeline-green: 21 128 61;
+  --pipeline-green-soft: 220 252 231;
+
+  --pipeline-red: 185 28 28;
+  --pipeline-red-soft: 254 226 226;
+
+  --pipeline-purple: 109 40 217;
+  --pipeline-purple-soft: 243 232 255;
 }
 
 * {

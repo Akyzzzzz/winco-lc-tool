@@ -21,6 +21,31 @@ export function normalizeForMatch(value: string): string {
     .replace(/\s+/g, " ");
 }
 
+/**
+ * Normalizes a free-text location string (a mapping sheet's region label,
+ * or a company's City/Headquarters value) into a clean, whitespace-only
+ * form suitable for exact lookups: Turkish-aware lower-casing, hyphens and
+ * slashes treated as word separators, and collapsed whitespace.
+ *
+ * "Istanbul-Anadolu"  -> "istanbul anadolu"
+ * "Istanbul / Kadıköy" -> "istanbul kadıköy"
+ * "  Kadıköy   "       -> "kadıköy"
+ */
+export function toLocationKey(value: string): string {
+  return normalizeForMatch(value)
+    .replace(/[-/]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Splits an already-normalized location key into its individual word
+ * tokens, e.g. "istanbul kadıköy" -> ["istanbul", "kadıköy"].
+ */
+export function locationKeyTokens(key: string): string[] {
+  return key.split(" ").filter(Boolean);
+}
+
 /** Formats an ISO timestamp as a short, human-friendly "time ago" style label. */
 export function formatRelativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();

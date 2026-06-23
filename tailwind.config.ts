@@ -30,6 +30,18 @@ const config: Config = {
           DEFAULT: "rgb(var(--duplicate) / <alpha-value>)",
           soft: "rgb(var(--duplicate-soft) / <alpha-value>)",
         },
+        // CRM pipeline status colors (distinct from the LC-match semantic
+        // colors above, even where a hue is shared) — see lib/status.ts.
+        pipeline: {
+          gray: { DEFAULT: "rgb(var(--pipeline-gray) / <alpha-value>)", soft: "rgb(var(--pipeline-gray-soft) / <alpha-value>)" },
+          yellow: { DEFAULT: "rgb(var(--pipeline-yellow) / <alpha-value>)", soft: "rgb(var(--pipeline-yellow-soft) / <alpha-value>)" },
+          blue: { DEFAULT: "rgb(var(--pipeline-blue) / <alpha-value>)", soft: "rgb(var(--pipeline-blue-soft) / <alpha-value>)" },
+          orange: { DEFAULT: "rgb(var(--pipeline-orange) / <alpha-value>)", soft: "rgb(var(--pipeline-orange-soft) / <alpha-value>)" },
+          teal: { DEFAULT: "rgb(var(--pipeline-teal) / <alpha-value>)", soft: "rgb(var(--pipeline-teal-soft) / <alpha-value>)" },
+          green: { DEFAULT: "rgb(var(--pipeline-green) / <alpha-value>)", soft: "rgb(var(--pipeline-green-soft) / <alpha-value>)" },
+          red: { DEFAULT: "rgb(var(--pipeline-red) / <alpha-value>)", soft: "rgb(var(--pipeline-red-soft) / <alpha-value>)" },
+          purple: { DEFAULT: "rgb(var(--pipeline-purple) / <alpha-value>)", soft: "rgb(var(--pipeline-purple-soft) / <alpha-value>)" },
+        },
       },
       fontFamily: {
         display: ["var(--font-display)", "sans-serif"],
